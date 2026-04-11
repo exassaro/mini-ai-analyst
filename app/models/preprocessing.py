@@ -22,13 +22,29 @@ def detect_problem_type(series: pd.Series) -> str:
     Rules
     -----
     * object / bool / category dtype  →  classification
-    * numeric with ≤ 20 unique values →  classification
-    * numeric with > 20 unique values →  regression
+    * float dtype                     →  regression (continuous)
+    * integer with high uniqueness ratio (> 50% of rows) → regression
+    * integer with ≤ 20 unique values AND low ratio      → classification
     """
     if series.dtype in ("object", "bool", "category"):
         return "classification"
-    if series.nunique() <= 20:
+
+    # Float columns are almost always continuous / regression
+    if pd.api.types.is_float_dtype(series):
+        return "regression"
+
+    # For integer columns, use both absolute and ratio-based checks
+    n_unique = series.nunique()
+    ratio = n_unique / len(series) if len(series) > 0 else 0
+
+    # If more than half the values are unique, likely regression
+    if ratio > 0.5:
+        return "regression"
+
+    # Low cardinality integer → classification
+    if n_unique <= 20:
         return "classification"
+
     return "regression"
 
 

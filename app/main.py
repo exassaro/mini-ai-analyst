@@ -50,13 +50,14 @@ def _create_storage_dirs() -> None:
     os.makedirs(settings.MODEL_DIR, exist_ok=True)
 
 
-# ── Serve the frontend (static files) ───────────────────────────────
-FRONTEND_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")
-if os.path.isdir(FRONTEND_DIR):
-    app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
-
-
 # ── Health-check (useful for quick smoke tests) ─────────────────────
 @app.get("/health", tags=["Health"])
 def health_check():
     return {"status": "ok", "app": settings.APP_NAME, "version": settings.APP_VERSION}
+
+
+# ── Serve the frontend (static files) ───────────────────────────────
+# IMPORTANT: must be LAST — the catch-all "/" mount intercepts all unmatched routes
+FRONTEND_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")
+if os.path.isdir(FRONTEND_DIR):
+    app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")

@@ -1,0 +1,40 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Project storage (don't commit uploaded CSVs or trained models)
+app/storage/uploads/*
+app/storage/models/*
+!app/storage/uploads/.gitkeep
+!app/storage/models/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Pytest / Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+pytest.xml
+
+# IDEs / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+
+# Output logs
+*.log
+test_output.txt

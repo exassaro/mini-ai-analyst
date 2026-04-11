@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Mini AI Analyst — upload a CSV, profile data, train ML models, and get predictions in seconds." />
+  <title>Mini AI Analyst</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════ HEADER ═══════════════════════ -->
+  <header class="header">
+    <div class="header__inner">
+      <div class="header__logo">
+        <span class="header__icon">🧠</span>
+        <h1>Mini AI Analyst</h1>
+      </div>
+      <p class="header__tagline">Upload · Profile · Train · Predict</p>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════ MAIN ═══════════════════════ -->
+  <main class="main">
+
+    <!-- ── STEP 1: Upload ────────────────────────────────── -->
+    <section class="card" id="section-upload">
+      <div class="card__header">
+        <span class="step-badge">1</span>
+        <h2>Upload CSV</h2>
+      </div>
+      <div class="card__body">
+        <div class="dropzone" id="dropzone">
+          <input type="file" id="fileInput" accept=".csv" hidden />
+          <div class="dropzone__content">
+            <svg class="dropzone__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 16V4m0 0L8 8m4-4l4 4"/><path d="M20 16v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2"/></svg>
+            <p>Drag &amp; drop your CSV here</p>
+            <span class="dropzone__or">or</span>
+            <button class="btn btn--outline" id="browseBtn">Browse Files</button>
+          </div>
+          <p class="dropzone__hint">Max 50 MB · .csv only</p>
+        </div>
+        <div class="upload-status hidden" id="uploadStatus">
+          <div class="spinner" id="uploadSpinner"></div>
+          <p id="uploadMsg"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── STEP 2: Profile ───────────────────────────────── -->
+    <section class="card disabled" id="section-profile">
+      <div class="card__header">
+        <span class="step-badge">2</span>
+        <h2>Data Profile</h2>
+        <button class="btn btn--primary" id="profileBtn" disabled>Run Profile</button>
+      </div>
+      <div class="card__body">
+        <div class="result-box hidden" id="profileResult"></div>
+      </div>
+    </section>
+
+    <!-- ── STEP 3: Train ─────────────────────────────────── -->
+    <section class="card disabled" id="section-train">
+      <div class="card__header">
+        <span class="step-badge">3</span>
+        <h2>Train Model</h2>
+      </div>
+      <div class="card__body">
+        <div class="form-row">
+          <label for="targetSelect">Target Column</label>
+          <select id="targetSelect" disabled>
+            <option value="">— profile first —</option>
+          </select>
+        </div>
+        <button class="btn btn--primary" id="trainBtn" disabled>Train</button>
+        <div class="result-box hidden" id="trainResult"></div>
+      </div>
+    </section>
+
+    <!-- ── STEP 4: Predict ───────────────────────────────── -->
+    <section class="card disabled" id="section-predict">
+      <div class="card__header">
+        <span class="step-badge">4</span>
+        <h2>Predict</h2>
+      </div>
+      <div class="card__body">
+        <div class="form-row">
+          <label for="predictInput">Input JSON (list of objects)</label>
+          <textarea id="predictInput" rows="5" placeholder='[{"col1": 1, "col2": "A"}]' disabled></textarea>
+        </div>
+        <button class="btn btn--primary" id="predictBtn" disabled>Predict</button>
+        <div class="result-box hidden" id="predictResult"></div>
+      </div>
+    </section>
+
+    <!-- ── STEP 5: Summary ───────────────────────────────── -->
+    <section class="card disabled" id="section-summary">
+      <div class="card__header">
+        <span class="step-badge">5</span>
+        <h2>Summary</h2>
+        <button class="btn btn--primary" id="summaryBtn" disabled>Get Summary</button>
+      </div>
+      <div class="card__body">
+        <div class="result-box hidden" id="summaryResult"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════ TOAST ═══════════════════════ -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- ═══════════════════════ FOOTER ═══════════════════════ -->
+  <footer class="footer">
+    <p>Mini AI Analyst &copy; 2026 &mdash; Analyst as a Service</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -3,136 +3,172 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Mini AI Analyst — upload a CSV, profile data, train ML models, and get predictions in seconds." />
+  <meta name="description" content="Mini AI Analyst — Professional Data Science Dashboard" />
   <title>Mini AI Analyst</title>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  
+  <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-  <!-- ═══════════════════════ HEADER ═══════════════════════ -->
-  <header class="header">
-    <div class="header__inner">
-      <div class="header__logo">
-        <span class="header__icon">🧠</span>
-        <h1>Mini AI Analyst</h1>
-      </div>
-      <p class="header__tagline">Upload · Profile · Train · Predict</p>
+  <!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__header">
+      <i data-lucide="brain-circuit" class="sidebar__logo-icon"></i>
+      <h1>Mini AI Analyst</h1>
     </div>
-  </header>
+    <nav class="sidebar__nav">
+      <button class="nav-item active" data-target="upload">
+        <i data-lucide="upload-cloud"></i> Upload Dataset
+      </button>
+      <button class="nav-item" data-target="profile" id="nav-profile" disabled>
+        <i data-lucide="bar-chart-2"></i> Data Profiling
+      </button>
+      <button class="nav-item" data-target="train" id="nav-train" disabled>
+        <i data-lucide="cpu"></i> Model Training
+      </button>
+      <button class="nav-item" data-target="predict" id="nav-predict" disabled>
+        <i data-lucide="zap"></i> Prediction
+      </button>
+      <button class="nav-item" data-target="summary" id="nav-summary" disabled>
+        <i data-lucide="file-text"></i> Summary
+      </button>
+    </nav>
+  </aside>
 
-  <!-- ═══════════════════════ MAIN ═══════════════════════ -->
-  <main class="main">
-
-    <!-- ── STEP 1: Upload ────────────────────────────────── -->
-    <section class="card" id="section-upload">
-      <div class="card__header">
-        <span class="step-badge">1</span>
-        <h2>Upload CSV</h2>
+  <!-- ═══════════════════════ MAIN WRAPPER ═══════════════════════ -->
+  <div class="main-wrapper">
+    
+    <header class="topbar">
+      <button class="mobile-toggle" id="mobileToggle">
+        <i data-lucide="menu"></i>
+      </button>
+      <div id="topbarStatus" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
+        Waiting for dataset...
       </div>
-      <div class="card__body">
-        <div class="dropzone" id="dropzone">
-          <input type="file" id="fileInput" accept=".csv" hidden />
-          <div class="dropzone__content">
-            <svg class="dropzone__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 16V4m0 0L8 8m4-4l4 4"/><path d="M20 16v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2"/></svg>
-            <p>Drag &amp; drop your CSV here</p>
-            <span class="dropzone__or">or</span>
-            <button class="btn btn--outline" id="browseBtn">Browse Files</button>
+    </header>
+
+    <main class="main-content">
+
+      <!-- ── STEP 1: Upload ────────────────────────────────── -->
+      <section class="content-section active" id="section-upload">
+        <div>
+          <h2>Upload Dataset</h2>
+          <p>Please upload a clean CSV file to begin analysis (Max 50 MB).</p>
+        </div>
+        <div class="card">
+          <div class="dropzone" id="dropzone">
+            <input type="file" id="fileInput" accept=".csv" hidden />
+            <i data-lucide="file-up" class="dropzone__icon" style="width: 48px; height: 48px;"></i>
+            <h3 style="margin-top: 1rem; color: var(--text);">Drag & drop your CSV here</h3>
+            <p class="dropzone__hint">or</p>
+            <button class="btn btn--outline" id="browseBtn" style="margin-top: 1rem;">Browse Files</button>
           </div>
-          <p class="dropzone__hint">Max 50 MB · .csv only</p>
+          <div class="upload-status hidden" id="uploadStatus">
+            <div class="spinner" id="uploadSpinner"></div>
+            <p id="uploadMsg" style="font-size: 0.9rem;"></p>
+          </div>
         </div>
-        <div class="upload-status hidden" id="uploadStatus">
-          <div class="spinner" id="uploadSpinner"></div>
-          <p id="uploadMsg"></p>
+      </section>
+
+      <!-- ── STEP 2: Profile ───────────────────────────────── -->
+      <section class="content-section" id="section-profile">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+          <div>
+            <h2>Data Profiling</h2>
+            <p>Analyze feature distributions, cardinalities, and detect leakage.</p>
+          </div>
+          <button class="btn btn--primary" id="profileBtn">Run Profile</button>
         </div>
-      </div>
-    </section>
-
-    <!-- ── STEP 2: Profile ───────────────────────────────── -->
-    <section class="card disabled" id="section-profile">
-      <div class="card__header">
-        <span class="step-badge">2</span>
-        <h2>Data Profile</h2>
-        <button class="btn btn--primary" id="profileBtn" disabled>Run Profile</button>
-      </div>
-      <div class="card__body">
-        <div class="result-box hidden" id="profileResult"></div>
-      </div>
-    </section>
-
-    <!-- ── STEP 3: Train ─────────────────────────────────── -->
-    <section class="card disabled" id="section-train">
-      <div class="card__header">
-        <span class="step-badge">3</span>
-        <h2>Train Model</h2>
-      </div>
-      <div class="card__body">
-        <div class="form-row">
-          <label for="targetSelect">Target Column</label>
-          <select id="targetSelect" disabled>
-            <option value="">— profile first —</option>
-          </select>
+        <div class="card hidden" id="profileResultCard">
+          <div id="profileResult"></div>
         </div>
-        <button class="btn btn--primary" id="trainBtn" disabled>Train</button>
-        <div class="result-box hidden" id="trainResult"></div>
-      </div>
-    </section>
+      </section>
 
-    <!-- ── STEP 4: Predict ───────────────────────────────── -->
-    <section class="card disabled" id="section-predict">
-      <div class="card__header">
-        <span class="step-badge">4</span>
-        <h2>Predict</h2>
-      </div>
-      <div class="card__body">
-        <div class="input-toggle" style="margin-bottom: 1rem;">
-          <label style="margin-right: 1rem;">
-            <input type="radio" name="predictMethod" value="json" checked> Manual JSON Input
-          </label>
-          <label>
-            <input type="radio" name="predictMethod" value="form"> Form Input
-          </label>
+      <!-- ── STEP 3: Train ─────────────────────────────────── -->
+      <section class="content-section" id="section-train">
+        <div>
+          <h2>Model Training</h2>
+          <p>Select a target variable. Auto ML will determine regression vs classification.</p>
         </div>
-
-        <div id="predictJsonContainer" class="form-row">
-          <label for="predictInput">Input JSON (list of objects)</label>
-          <textarea id="predictInput" rows="5" placeholder='[{"col1": 1, "col2": "A"}]' disabled></textarea>
+        <div class="card">
+          <div class="form-row">
+            <label for="targetSelect">Target Column</label>
+            <div style="display: flex; gap: 1rem;">
+              <select id="targetSelect">
+                <option value="">— please profile first —</option>
+              </select>
+              <button class="btn btn--primary" id="trainBtn">Train Model</button>
+            </div>
+          </div>
+          <div class="result-box hidden" id="trainResult"></div>
         </div>
+      </section>
 
-        <div id="predictFormContainer" class="hidden">
-          <div id="dynamicFormFields" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;"></div>
+      <!-- ── STEP 4: Predict ───────────────────────────────── -->
+      <section class="content-section" id="section-predict">
+        <div>
+          <h2>Prediction Engine</h2>
+          <p>Run inference using manual JSON or dynamically generated forms.</p>
         </div>
+        <div class="card">
+          <div class="input-toggle">
+            <label>
+              <input type="radio" name="predictMethod" value="form" checked> Form Input
+            </label>
+            <label>
+              <input type="radio" name="predictMethod" value="json"> Manual JSON
+            </label>
+          </div>
 
-        <button class="btn btn--primary" id="predictBtn" disabled>Predict</button>
-        <div class="result-box hidden" id="predictResult"></div>
-      </div>
-    </section>
+          <div id="predictFormContainer">
+             <div id="dynamicFormFields" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
+                <p style="color: var(--text-muted); font-size: 0.85rem; grid-column: 1 / -1;">Form fields will generate after training completes.</p>
+             </div>
+          </div>
 
-    <!-- ── STEP 5: Summary ───────────────────────────────── -->
-    <section class="card disabled" id="section-summary">
-      <div class="card__header">
-        <span class="step-badge">5</span>
-        <h2>Summary</h2>
-        <button class="btn btn--primary" id="summaryBtn" disabled>Get Summary</button>
-      </div>
-      <div class="card__body">
-        <div class="result-box hidden" id="summaryResult"></div>
-      </div>
-    </section>
+          <div id="predictJsonContainer" class="form-row hidden">
+            <label for="predictInput">Input JSON payload (array of objects)</label>
+            <textarea id="predictInput" rows="5" placeholder='[{"feature1": 12, "feature2": "A"}]'></textarea>
+          </div>
 
-  </main>
+          <button class="btn btn--primary" id="predictBtn" style="width: 100%; margin-top: 1rem;">
+            Run Prediction
+          </button>
+          
+          <div class="result-box hidden" id="predictResult" style="margin-top: 1.5rem;"></div>
+        </div>
+      </section>
+
+      <!-- ── STEP 5: Summary ───────────────────────────────── -->
+      <section class="content-section" id="section-summary">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+          <div>
+            <h2>Analysis Summary</h2>
+            <p>A natural-language report combining profile statistics and model metrics.</p>
+          </div>
+          <button class="btn btn--primary" id="summaryBtn">Generate Summary</button>
+        </div>
+        <div class="card hidden" id="summaryResultCard">
+          <div id="summaryResult"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
 
   <!-- ═══════════════════════ TOAST ═══════════════════════ -->
   <div id="toast" class="toast hidden"></div>
 
-  <!-- ═══════════════════════ FOOTER ═══════════════════════ -->
-  <footer class="footer">
-    <p>Mini AI Analyst &copy; 2026 &mdash; Analyst as a Service</p>
-  </footer>
-
   <script src="script.js"></script>
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+  </script>
 </body>
 </html>

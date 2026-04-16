@@ -48,17 +48,24 @@ def generate_summary(file_id: str, model_id: str) -> Dict[str, Any]:
             for feat, val in corr_series.items()
         ]
 
+    from app.services.profiling_service import profile_data
+    # Run a quick profiling to get insights
+    profile = profile_data(file_id, target_column=target_column)
+
     # ── Build human-readable summary ─────────────────────────────────
     lines = [
         f"Dataset has {df.shape[0]:,} rows and {df.shape[1]:,} columns.",
         f"Target column: '{target_column}' ({problem_type}).",
     ]
 
+    # Model metrics
     if problem_type == "classification":
         n_classes = df[target_column].nunique()
         lines.append(f"Number of classes: {n_classes}.")
         lines.append(
             f"Model accuracy: {metrics.get('accuracy', 'N/A')}  |  "
+            f"Precision: {metrics.get('precision', 'N/A')}  |  "
+            f"Recall: {metrics.get('recall', 'N/A')}  |  "
             f"F1 (weighted): {metrics.get('f1_weighted', 'N/A')}."
         )
     else:
@@ -67,9 +74,23 @@ def generate_summary(file_id: str, model_id: str) -> Dict[str, Any]:
             f"R²: {metrics.get('r2', 'N/A')}."
         )
 
+    # Key insights
     if top_corr:
         feat_str = ", ".join(f"{c['feature']} ({c['correlation']})" for c in top_corr[:3])
         lines.append(f"Top correlated features: {feat_str}.")
+
+    insights = []
+    if profile.get("imbalanced_columns"):
+        insights.append(f"Imbalanced classes found in: {', '.join(profile['imbalanced_columns'])}.")
+    if profile.get("high_cardinality_columns"):
+        insights.append(f"High cardinality in: {', '.join(profile['high_cardinality_columns'])}.")
+    if profile.get("constant_columns"):
+        insights.append(f"Constant columns detected: {', '.join(profile['constant_columns'])}.")
+    if profile.get("data_leakage_warnings"):
+        insights.append("Warning Data Leakage possible: " + " ".join(profile["data_leakage_warnings"]))
+    
+    if insights:
+        lines.append("Key Insights from Profiling: " + " ".join(insights))
 
     summary_text = " ".join(lines)
     log.info("Summary generated for file_id=%s  model_id=%s", file_id, model_id)

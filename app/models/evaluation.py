@@ -8,6 +8,8 @@ import numpy as np
 from sklearn.metrics import (
     accuracy_score,
     f1_score,
+    precision_score,
+    recall_score,
     mean_squared_error,
     r2_score,
 )
@@ -22,7 +24,7 @@ def evaluate_model(model, X_test, y_test, problem_type: str) -> Dict[str, float]
     """
     Compute evaluation metrics for a trained model.
 
-    Classification → accuracy, f1_weighted
+    Classification → accuracy, precision, recall, f1_weighted
     Regression     → rmse, r2
     """
     y_pred = model.predict(X_test)
@@ -30,6 +32,12 @@ def evaluate_model(model, X_test, y_test, problem_type: str) -> Dict[str, float]
     if problem_type == "classification":
         metrics = {
             "accuracy": round(accuracy_score(y_test, y_pred), 4),
+            "precision": round(
+                precision_score(y_test, y_pred, average="weighted", zero_division=0), 4
+            ),
+            "recall": round(
+                recall_score(y_test, y_pred, average="weighted", zero_division=0), 4
+            ),
             "f1_weighted": round(
                 f1_score(y_test, y_pred, average="weighted", zero_division=0), 4
             ),

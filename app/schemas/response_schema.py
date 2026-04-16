@@ -16,10 +16,14 @@ class ProfileResponse(BaseModel):
     column_types: Dict[str, str]
     null_percentage: Dict[str, float]
     unique_counts: Dict[str, int]
-    numeric_correlations: Dict[str, Dict[str, float]]
+    numeric_correlations: Dict[str, Dict[str, Optional[float]]]
     outlier_counts: Dict[str, int]
     high_cardinality_columns: List[str]
     constant_columns: List[str]
+    skewness: Dict[str, float]
+    imbalanced_columns: List[str]
+    data_leakage_warnings: List[str]
+    histograms: Optional[Dict[str, Dict[str, List[float]]]] = None
 
 
 class SummaryResponse(BaseModel):

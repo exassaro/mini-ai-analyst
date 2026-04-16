@@ -147,24 +147,81 @@ function renderProfile(d) {
   html += `<p><strong>Shape:</strong> ${d.shape[0].toLocaleString()} rows × ${d.shape[1]} columns</p>`;
 
   // Column types table
-  html += `<table><thead><tr><th>Column</th><th>Type</th><th>Nulls %</th><th>Unique</th><th>Outliers</th></tr></thead><tbody>`;
+  html += `<table><thead><tr><th>Column</th><th>Type</th><th>Nulls %</th><th>Unique</th><th>Skewness</th><th>Outliers</th></tr></thead><tbody>`;
   for (const col of d.columns) {
     const outlier = d.outlier_counts[col] ?? "—";
+    const skew = d.skewness[col] !== undefined && d.skewness[col] !== null ? d.skewness[col] : "—";
     html += `<tr>
       <td>${col}</td>
       <td>${d.column_types[col]}</td>
       <td>${d.null_percentage[col]}%</td>
       <td>${d.unique_counts[col]}</td>
+      <td>${skew}</td>
       <td>${outlier}</td>
     </tr>`;
   }
   html += `</tbody></table>`;
 
   // Flags
+  if (d.imbalanced_columns && d.imbalanced_columns.length)
+    html += `<p style="margin-top:.7rem">⚠️ <strong>Imbalanced categorical:</strong> ${d.imbalanced_columns.join(", ")}</p>`;
   if (d.high_cardinality_columns.length)
-    html += `<p style="margin-top:.7rem">⚠️ <strong>High cardinality:</strong> ${d.high_cardinality_columns.join(", ")}</p>`;
+    html += `<p style="margin-top:.3rem">⚠️ <strong>High cardinality:</strong> ${d.high_cardinality_columns.join(", ")}</p>`;
   if (d.constant_columns.length)
-    html += `<p>⚠️ <strong>Constant columns:</strong> ${d.constant_columns.join(", ")}</p>`;
+    html += `<p style="margin-top:.3rem">⚠️ <strong>Constant columns:</strong> ${d.constant_columns.join(", ")}</p>`;
+
+  // Correlation Matrix
+  if (d.numeric_correlations && Object.keys(d.numeric_correlations).length > 0) {
+    const numCols = Object.keys(d.numeric_correlations);
+    html += `<h4 style="margin-top: 1.5rem">Pairwise Correlation Matrix</h4><table style="font-size: 0.85em"><thead><tr><th></th>`;
+    for (const col of numCols) {
+        html += `<th>${col}</th>`;
+    }
+    html += `</tr></thead><tbody>`;
+    for (const rowCol of numCols) {
+        html += `<tr><td><strong>${rowCol}</strong></td>`;
+        for (const col of numCols) {
+            const val = d.numeric_correlations[rowCol][col];
+            html += `<td>${val !== null && val !== undefined ? val : '—'}</td>`;
+        }
+        html += `</tr>`;
+    }
+    html += `</tbody></table>`;
+  }
+
+  if (d.histograms && Object.keys(d.histograms).length > 0) {
+    const feature = Object.keys(d.histograms)[0];
+    html += `
+      <div style="margin-top: 1.5rem">
+        <h4>📈 Basic Feature Distribution: ${feature}</h4>
+        <canvas id="distChart" width="400" height="200"></canvas>
+      </div>
+    `;
+    setTimeout(() => {
+        const ctx = document.getElementById("distChart");
+        if (ctx) {
+            const hist = d.histograms[feature];
+            const labels = [];
+            for (let i = 0; i < hist.bins.length - 1; i++) {
+                labels.push(`${hist.bins[i].toFixed(1)} - ${hist.bins[i+1].toFixed(1)}`);
+            }
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Frequency',
+                        data: hist.counts,
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: { scales: { y: { beginAtZero: true } } }
+            });
+        }
+    }, 100);
+  }
 
   profileResult.innerHTML = html;
 }

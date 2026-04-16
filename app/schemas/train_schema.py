@@ -11,6 +11,7 @@ class TrainRequest(BaseModel):
     """Body sent to POST /train."""
     file_id: str
     target_column: str
+    features: Optional[List[str]] = None
 
 class TrainResponse(BaseModel):
     """Returned after model training completes."""

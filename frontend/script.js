@@ -178,6 +178,17 @@ profileBtn.addEventListener("click", async () => {
     targetSelect.innerHTML = columns.map(c => `<option value="${c}">${c}</option>`).join("");
     targetSelect.disabled = false;
     
+    // Generate feature checkboxes
+    const featureBox = $("#featureCheckboxes");
+    featureBox.innerHTML = columns.map(c => `
+      <label style="display:flex; align-items:center; gap:0.4rem; font-weight:normal;">
+        <input type="checkbox" name="featureCol" value="${c}" checked />
+        ${c}
+      </label>
+    `).join("");
+
+    updateDisabledTargetCheckbox();
+    
     unlockStep("train");
     showToast("Profile complete");
   } catch (err) {
@@ -218,7 +229,7 @@ function renderProfile(d) {
   // Correlation Matrix
   if (d.numeric_correlations && Object.keys(d.numeric_correlations).length > 0) {
     const numCols = Object.keys(d.numeric_correlations);
-    html += `<h3 style="margin-top: 2rem;">Pairwise Correlation Matrix</h3><table style="font-size: 0.85em"><thead><tr><th></th>`;
+    html += `<h3 style="margin-top: 2rem;">Pairwise Correlation Matrix</h3><div style="overflow-x: auto; width: 100%; border: 1px solid var(--border); border-radius: 6px;"><table style="font-size: 0.85em; margin-top: 0; min-width: max-content;"><thead><tr><th></th>`;
     for (const col of numCols) {
         html += `<th>${col}</th>`;
     }
@@ -231,7 +242,7 @@ function renderProfile(d) {
         }
         html += `</tr>`;
     }
-    html += `</tbody></table>`;
+    html += `</tbody></table></div>`;
   }
 
   // Distribution Chart
@@ -274,15 +285,36 @@ function renderProfile(d) {
 
 /* ═══════════════════ 3. TRAIN ═══════════════════════════════ */
 
+targetSelect.addEventListener("change", updateDisabledTargetCheckbox);
+
+function updateDisabledTargetCheckbox() {
+  const target = targetSelect.value;
+  document.querySelectorAll('input[name="featureCol"]').forEach(chk => {
+    if (chk.value === target) {
+      chk.checked = false;
+      chk.disabled = true;
+    } else {
+      chk.disabled = false;
+    }
+  });
+}
+
 trainBtn.addEventListener("click", async () => {
   const target = targetSelect.value;
   if (!target) { showToast("Select a target column", true); return; }
+
+  const selectedFeatures = Array.from(document.querySelectorAll('input[name="featureCol"]:checked')).map(chk => chk.value);
+  if (selectedFeatures.length === 0) { showToast("Select at least one feature column", true); return; }
 
   setLoading(trainBtn, true);
   trainResult.classList.add("hidden");
 
   try {
-    const data = await api("POST", "/train", { file_id: fileId, target_column: target });
+    const data = await api("POST", "/train", { 
+      file_id: fileId, 
+      target_column: target, 
+      features: selectedFeatures 
+    });
     modelId = data.model_id;
     renderTrain(data);
     trainResult.classList.remove("hidden");

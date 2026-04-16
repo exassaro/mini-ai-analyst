@@ -22,7 +22,7 @@ def train(req: TrainRequest):
     * Returns ``model_id`` and evaluation metrics.
     """
     try:
-        result = train_model(req.file_id, req.target_column)
+        result = train_model(req.file_id, req.target_column, req.features)
         return TrainResponse(**result)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))

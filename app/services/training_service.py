@@ -7,7 +7,7 @@ load → preprocess → split → train → evaluate → persist.
 
 import joblib
 from sklearn.model_selection import train_test_split
-from typing import Dict, Any
+from typing import Dict, Any, Optional, List
 
 from app.core.config import settings
 from app.core.utils import load_csv, generate_uuid, get_model_path
@@ -19,7 +19,7 @@ from app.models.evaluation import evaluate_model
 log = get_logger(__name__)
 
 
-def train_model(file_id: str, target_column: str) -> Dict[str, Any]:
+def train_model(file_id: str, target_column: str, features: Optional[List[str]] = None) -> Dict[str, Any]:
     """
     End-to-end training pipeline.
 
@@ -37,6 +37,15 @@ def train_model(file_id: str, target_column: str) -> Dict[str, Any]:
     # 2. Detect problem type
     problem_type = detect_problem_type(df[target_column])
     log.info("Detected problem type: %s", problem_type)
+
+    if features is not None and len(features) > 0:
+        # Keep only the requested features + the target column
+        columns_to_keep = list(set(features + [target_column]))
+        # Ensure all requested columns actually exist in the dataframe
+        columns_to_keep = [col for col in columns_to_keep if col in df.columns]
+        if target_column not in columns_to_keep:
+            raise ValueError(f"Target column '{target_column}' is missing after feature filtering.")
+        df = df[columns_to_keep]
 
     # 3. Preprocess
     X, y, label_encoders = preprocess_dataframe(df, target_column, fit=True)

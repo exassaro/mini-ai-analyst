@@ -13,8 +13,12 @@ class PredictRequest(BaseModel):
     model_id: str
     data: List[Dict[str, Any]]   # list of row-dicts
 
-
 class PredictResponse(BaseModel):
     """Returned after prediction."""
-    predictions: List[Any]
-    probabilities: Optional[List[List[float]]] = None  # classification only
+    predictions: List[Dict[str, Any]]
+
+class ModelInfoResponse(BaseModel):
+    """Returned by GET /model-info"""
+    features: List[str]
+    target: str
+    problem_type: str

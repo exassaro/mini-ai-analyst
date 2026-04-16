@@ -88,10 +88,24 @@
         <h2>Predict</h2>
       </div>
       <div class="card__body">
-        <div class="form-row">
+        <div class="input-toggle" style="margin-bottom: 1rem;">
+          <label style="margin-right: 1rem;">
+            <input type="radio" name="predictMethod" value="json" checked> Manual JSON Input
+          </label>
+          <label>
+            <input type="radio" name="predictMethod" value="form"> Form Input
+          </label>
+        </div>
+
+        <div id="predictJsonContainer" class="form-row">
           <label for="predictInput">Input JSON (list of objects)</label>
           <textarea id="predictInput" rows="5" placeholder='[{"col1": 1, "col2": "A"}]' disabled></textarea>
         </div>
+
+        <div id="predictFormContainer" class="hidden">
+          <div id="dynamicFormFields" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;"></div>
+        </div>
+
         <button class="btn btn--primary" id="predictBtn" disabled>Predict</button>
         <div class="result-box hidden" id="predictResult"></div>
       </div>

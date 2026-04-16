@@ -241,6 +241,21 @@ trainBtn.addEventListener("click", async () => {
     renderTrain(data);
     trainResult.classList.remove("hidden");
 
+    // fetch model info to populate form
+    const modelInfo = await api("GET", `/model-info?model_id=${modelId}`);
+    
+    // populate prediction form dynamically
+    const fieldsContainer = $("#dynamicFormFields");
+    fieldsContainer.innerHTML = "";
+    modelInfo.features.forEach(feat => {
+       fieldsContainer.innerHTML += `
+         <div style="display:flex; flex-direction:column;">
+           <label>${feat}</label>
+           <input type="text" name="${feat}" placeholder="Enter ${feat}" style="padding:0.4rem; border:1px solid #ccc; border-radius:4px;" />
+         </div>
+       `;
+    });
+
     // unlock step 4 & 5
     enableSection("#section-predict");
     predictInput.disabled = false;
@@ -280,14 +295,35 @@ function metricClass(key, val) {
 
 /* ═══════════════════ 4. PREDICT ═════════════════════════════ */
 
+document.querySelectorAll('input[name="predictMethod"]').forEach(el => {
+  el.addEventListener("change", (e) => {
+    if (e.target.value === "json") {
+      $("#predictJsonContainer").classList.remove("hidden");
+      $("#predictFormContainer").classList.add("hidden");
+    } else {
+      $("#predictJsonContainer").classList.add("hidden");
+      $("#predictFormContainer").classList.remove("hidden");
+    }
+  });
+});
+
 predictBtn.addEventListener("click", async () => {
   let rows;
-  try {
-    rows = JSON.parse(predictInput.value);
-    if (!Array.isArray(rows)) throw 0;
-  } catch {
-    showToast("Invalid JSON — must be an array of objects", true);
-    return;
+  const isForm = $("input[name='predictMethod']:checked").value === "form";
+  if (isForm) {
+    const formData = {};
+    document.querySelectorAll('#dynamicFormFields input').forEach(inp => {
+       formData[inp.name] = isNaN(Number(inp.value)) || inp.value.trim() === "" ? inp.value : Number(inp.value);
+    });
+    rows = [formData];
+  } else {
+    try {
+      rows = JSON.parse(predictInput.value);
+      if (!Array.isArray(rows)) throw 0;
+    } catch {
+      showToast("Invalid JSON — must be an array of objects", true);
+      return;
+    }
   }
 
   setLoading(predictBtn, true);
@@ -307,12 +343,26 @@ predictBtn.addEventListener("click", async () => {
 
 function renderPredict(d) {
   let html = `<h3>🎯 Predictions</h3>`;
-  html += `<table><thead><tr><th>#</th><th>Prediction</th>`;
-  if (d.probabilities) html += `<th>Probabilities</th>`;
+  
+  if (!d.predictions || d.predictions.length === 0) {
+      html += `<p>No predictions returned.</p>`;
+      predictResult.innerHTML = html;
+      return;
+  }
+
+  // Get dynamic target column name from the first result
+  const rowOne = d.predictions[0];
+  const keys = Object.keys(rowOne);
+  const targetCol = keys.find(k => k !== "confidence");
+  const hasConfidence = keys.includes("confidence");
+
+  html += `<table><thead><tr><th>#</th><th>${targetCol} (Predicted)</th>`;
+  if (hasConfidence) html += `<th>Confidence</th>`;
   html += `</tr></thead><tbody>`;
+
   d.predictions.forEach((p, i) => {
-    html += `<tr><td>${i + 1}</td><td>${p}</td>`;
-    if (d.probabilities) html += `<td>${d.probabilities[i].map(v => v.toFixed(3)).join(", ")}</td>`;
+    html += `<tr><td>${i + 1}</td><td><strong>${p[targetCol]}</strong></td>`;
+    if (p.confidence !== undefined) html += `<td>${p.confidence.toFixed(3)}</td>`;
     html += `</tr>`;
   });
   html += `</tbody></table>`;

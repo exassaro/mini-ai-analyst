@@ -73,5 +73,7 @@ def train_model(file_id: str, target_column: str) -> Dict[str, Any]:
         "model_id": model_id,
         "problem_type": problem_type,
         "metrics": metrics,
+        "features": list(X.columns),
+        "target": target_column,
         "message": "Model trained successfully",
     }

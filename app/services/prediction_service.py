@@ -51,12 +51,29 @@ def predict(model_id: str, data: List[Dict[str, Any]]) -> Dict[str, Any]:
     if le_target is not None:
         preds = le_target.inverse_transform(preds.astype(int))
 
-    result: Dict[str, Any] = {"predictions": preds.tolist()}
+    # Format predictions
+    target_col = artefact.get("target_column", "prediction")
+    formatted_preds = []
 
-    # Probabilities for classification
     if problem_type == "classification" and hasattr(model, "predict_proba"):
         proba = model.predict_proba(X)
-        result["probabilities"] = np.round(proba, 4).tolist()
+        for i, val in enumerate(preds):
+            confidence = round(float(np.max(proba[i])), 4)
+            val = val.item() if hasattr(val, "item") else val
+            formatted_preds.append({
+                target_col: val,
+                "confidence": confidence
+            })
+    else:
+        for val in preds:
+            val = val.item() if hasattr(val, "item") else val
+            if isinstance(val, float):
+                val = round(val, 4)
+            formatted_preds.append({
+                target_col: val
+            })
+
+    result: Dict[str, Any] = {"predictions": formatted_preds}
 
     log.info("Predicted %d rows with model_id=%s", len(data), model_id)
     return result

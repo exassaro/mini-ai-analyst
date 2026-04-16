@@ -16,6 +16,7 @@ from app.api.profile import router as profile_router
 from app.api.train import router as train_router
 from app.api.predict import router as predict_router
 from app.api.summary import router as summary_router
+from app.api.model_info import router as model_info_router
 from app.core.config import settings
 
 # ── Application factory ─────────────────────────────────────────────
@@ -40,6 +41,7 @@ app.include_router(profile_router, prefix="/profile", tags=["Profile"])
 app.include_router(train_router, prefix="/train", tags=["Train"])
 app.include_router(predict_router, prefix="/predict", tags=["Predict"])
 app.include_router(summary_router, prefix="/summary", tags=["Summary"])
+app.include_router(model_info_router, prefix="/model-info", tags=["Model Info"])
 
 
 # ── Startup event ────────────────────────────────────────────────────

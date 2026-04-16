@@ -5,18 +5,18 @@ Pydantic models for the /train endpoint.
 """
 
 from pydantic import BaseModel
-from typing import Dict, Optional
-
+from typing import Dict, Optional, List
 
 class TrainRequest(BaseModel):
     """Body sent to POST /train."""
     file_id: str
     target_column: str
 
-
 class TrainResponse(BaseModel):
     """Returned after model training completes."""
     model_id: str
     problem_type: str          # "classification" or "regression"
     metrics: Dict[str, float]
+    features: List[str]
+    target: str
     message: str = "Model trained successfully"

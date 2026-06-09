@@ -295,6 +295,101 @@ td { color: var(--text); }
 .toast.hidden { opacity: 0; transform: translateY(20px); pointer-events: none; }
 .toast.error  { background: var(--danger); }
 
+/* ── Semantic Type Badges ──────────────────────────────────── */
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 99px;
+  font-size: 0.75rem; font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: capitalize;
+}
+.badge--blue   { background: #DBEAFE; color: #1E40AF; }
+.badge--purple { background: #EDE9FE; color: #5B21B6; }
+.badge--teal   { background: #CCFBF1; color: #0F766E; }
+.badge--amber  { background: #FEF3C7; color: #92400E; }
+.badge--gray   { background: #F3F4F6; color: #374151; }
+
+/* ── Inline Flags (schema preview) ─────────────────────────── */
+.flag {
+  display: inline-flex; align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem; font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.flag--warn   { background: #FEF3C7; color: #92400E; }
+.flag--danger { background: #FEE2E2; color: #991B1B; }
+
+/* ── Alert Banners ─────────────────────────────────────────── */
+.alert {
+  display: flex; align-items: flex-start; gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin-top: 0.5rem;
+}
+.alert--info {
+  background: #EFF6FF;
+  color: #1E40AF;
+  border: 1px solid #BFDBFE;
+}
+.alert--warn {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+}
+.alert--danger {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+/* ── Feature Importance Chart ──────────────────────────────── */
+.importance-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.importance-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.importance-label {
+  min-width: 120px;
+  max-width: 180px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.importance-bar-bg {
+  flex: 1;
+  height: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.importance-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #3B82F6, #2563EB);
+  border-radius: 99px;
+  transition: width 0.5s var(--ease);
+}
+.importance-value {
+  min-width: 48px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: right;
+}
+
 /* ── Responsive ────────────────────────────────────────────── */
 .mobile-toggle { display: none; background: none; border: none; cursor: pointer; color: var(--text); }
 
@@ -308,4 +403,5 @@ td { color: var(--text); }
   }
   .sidebar.open { transform: translateX(0); }
   .mobile-toggle { display: block; }
+  .importance-label { min-width: 80px; max-width: 120px; }
 }

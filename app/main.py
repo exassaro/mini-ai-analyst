@@ -7,6 +7,8 @@ and ensures storage directories exist on startup.
 """
 
 import os
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -19,11 +21,22 @@ from app.api.summary import router as summary_router
 from app.api.model_info import router as model_info_router
 from app.core.config import settings
 
+
+# ── Lifespan handler ────────────────────────────────────────────────
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Ensure the upload and model storage directories exist."""
+    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    os.makedirs(settings.MODEL_DIR, exist_ok=True)
+    yield
+
+
 # ── Application factory ─────────────────────────────────────────────
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     description="Upload a CSV → profile it → train a model → get predictions.",
+    lifespan=lifespan,
 )
 
 # ── CORS (allow the frontend to call the API) ───────────────────────
@@ -42,14 +55,6 @@ app.include_router(train_router, prefix="/train", tags=["Train"])
 app.include_router(predict_router, prefix="/predict", tags=["Predict"])
 app.include_router(summary_router, prefix="/summary", tags=["Summary"])
 app.include_router(model_info_router, prefix="/model-info", tags=["Model Info"])
-
-
-# ── Startup event ────────────────────────────────────────────────────
-@app.on_event("startup")
-def _create_storage_dirs() -> None:
-    """Ensure the upload and model storage directories exist."""
-    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
-    os.makedirs(settings.MODEL_DIR, exist_ok=True)
 
 
 # ── Health-check (useful for quick smoke tests) ─────────────────────

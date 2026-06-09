@@ -54,7 +54,10 @@ class TestPredict:
         assert resp.status_code == 200
         data = resp.json()
         assert len(data["predictions"]) == 2
-        assert data["probabilities"] is not None
+        # Confidence is embedded per-prediction, not as a separate top-level key
+        for pred in data["predictions"]:
+            assert "species" in pred
+            assert "confidence" in pred
 
     def test_predict_missing_model(self):
         resp = client.post("/predict", json={
@@ -62,6 +65,25 @@ class TestPredict:
             "data": [{"a": 1}],
         })
         assert resp.status_code == 404
+
+    def test_predict_empty_data(self):
+        fid, mid = _upload_and_train(CLASSIFICATION_CSV, "species")
+        resp = client.post("/predict", json={
+            "model_id": mid,
+            "data": [],
+        })
+        assert resp.status_code == 400
+
+    def test_predict_missing_features(self):
+        """Prediction should work even with missing features (uses defaults)."""
+        fid, mid = _upload_and_train(CLASSIFICATION_CSV, "species")
+        resp = client.post("/predict", json={
+            "model_id": mid,
+            "data": [{"sepal_length": 5.0}],  # missing other features
+        })
+        assert resp.status_code == 200
+        data = resp.json()
+        assert len(data["predictions"]) == 1
 
 
 class TestSummary:
@@ -73,6 +95,13 @@ class TestSummary:
         assert data["problem_type"] == "classification"
         assert "summary_text" in data
         assert data["dataset_shape"][0] == 10
+
+    def test_summary_has_model_performance(self):
+        fid, mid = _upload_and_train(CLASSIFICATION_CSV, "species")
+        resp = client.get(f"/summary?file_id={fid}&model_id={mid}")
+        data = resp.json()
+        assert "model_performance" in data
+        assert "accuracy" in data["model_performance"]
 
     def test_summary_missing_file(self):
         resp = client.get("/summary?file_id=bad&model_id=bad")

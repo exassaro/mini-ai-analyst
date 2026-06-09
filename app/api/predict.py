@@ -18,12 +18,18 @@ def run_predict(req: PredictRequest):
     Predict using a trained model.
 
     * Accepts ``model_id`` and a list of row dicts.
-    * Returns predictions (and probabilities for classification).
+    * Validates input schema against the model's expected features.
+    * Returns predictions (and confidence scores for classification).
     """
     try:
         result = predict(req.model_id, req.data)
         return PredictResponse(**result)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(
+            status_code=500,
+            detail=f"Prediction failed: {exc}",
+        )

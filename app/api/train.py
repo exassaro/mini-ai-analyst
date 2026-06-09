@@ -17,9 +17,10 @@ def train(req: TrainRequest):
     """
     Train a model.
 
-    * Accepts ``file_id`` and ``target_column``.
+    * Accepts ``file_id`` and optionally ``target_column`` (auto-inferred
+      if not provided) and ``features``.
     * Auto-detects classification vs regression.
-    * Returns ``model_id`` and evaluation metrics.
+    * Returns ``model_id``, evaluation metrics, and feature importances.
     """
     try:
         result = train_model(req.file_id, req.target_column, req.features)
@@ -29,4 +30,7 @@ def train(req: TrainRequest):
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(
+            status_code=500,
+            detail=f"Training failed: {exc}",
+        )

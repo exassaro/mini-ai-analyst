@@ -42,6 +42,17 @@ REGRESSION_CSV = (
     "1700,3,255000\n"
 )
 
+# Dataset with a "target" column for auto-inference
+AUTO_TARGET_CSV = (
+    "feature_a,feature_b,target\n"
+    "1,10,0\n"
+    "2,20,1\n"
+    "3,30,0\n"
+    "4,40,1\n"
+    "5,50,0\n"
+    "6,60,1\n"
+)
+
 
 def _upload(csv_text: str) -> str:
     """Upload CSV and return file_id."""
@@ -56,15 +67,23 @@ def _upload(csv_text: str) -> str:
 class TestProfile:
     def test_profile_success(self):
         fid = _upload(CLASSIFICATION_CSV)
-        resp = client.get(f"/profile?file_id={fid}")
+        resp = client.get(f"/profile?file_id={fid}", headers={"session-token": "test-token"})
         assert resp.status_code == 200
         data = resp.json()
-        assert data["shape"][0] == 10
-        assert "species" in data["columns"]
-        assert "column_types" in data
+        assert data["schema_info"]["shape"][0] == 10
+        assert "sepal_length" in data["schema_info"]["columns"]
+        assert "column_types" in data["schema_info"]
+
+    def test_profile_returns_semantic_types(self):
+        fid = _upload(CLASSIFICATION_CSV)
+        resp = client.get(f"/profile?file_id={fid}", headers={"session-token": "test-token"})
+        data = resp.json()
+        # species should be categorical, sepal_length should be numerical
+        assert data["schema_info"]["column_types"]["species"] == "categorical"
+        assert data["schema_info"]["column_types"]["sepal_length"] == "numerical"
 
     def test_profile_missing_file(self):
-        resp = client.get("/profile?file_id=nonexistent-id")
+        resp = client.get("/profile?file_id=nonexistent-id", headers={"session-token": "test-token"})
         assert resp.status_code == 404
 
 
@@ -78,6 +97,18 @@ class TestTrain:
         assert "accuracy" in data["metrics"]
         assert "model_id" in data
 
+    def test_train_returns_feature_importances(self):
+        fid = _upload(CLASSIFICATION_CSV)
+        resp = client.post("/train", json={"file_id": fid, "target_column": "species"})
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "feature_importances" in data
+        if data["feature_importances"]:
+            # Should be a dict of feature → float
+            for k, v in data["feature_importances"].items():
+                assert isinstance(k, str)
+                assert isinstance(v, (int, float))
+
     def test_train_regression(self):
         fid = _upload(REGRESSION_CSV)
         resp = client.post("/train", json={"file_id": fid, "target_column": "price"})
@@ -85,6 +116,14 @@ class TestTrain:
         data = resp.json()
         assert data["problem_type"] == "regression"
         assert "rmse" in data["metrics"]
+
+    def test_train_auto_infer_target(self):
+        fid = _upload(AUTO_TARGET_CSV)
+        # Don't pass target_column — should auto-infer "target"
+        resp = client.post("/train", json={"file_id": fid})
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["target"] == "target"
 
     def test_train_missing_target(self):
         fid = _upload(CLASSIFICATION_CSV)

@@ -1,7 +1,7 @@
 """
 api/upload.py
 =============
-POST /upload — accept a CSV file (max 50 MB), save to disk.
+POST /upload — accept a CSV file (max 50 MB), validate, infer schema.
 """
 
 from fastapi import APIRouter, File, UploadFile, HTTPException
@@ -18,24 +18,30 @@ async def upload_csv(file: UploadFile = File(...)):
     """
     Upload a CSV file.
 
-    * Validates content type and file size.
+    * Validates content type and filename extension.
     * Streams file to ``storage/uploads/{file_id}.csv``.
-    * Returns the generated ``file_id``.
+    * Validates the file is a parseable CSV.
+    * Returns the generated ``file_id`` with schema inference.
     """
     # ── Validate content type ────────────────────────────────────────
-    if file.content_type not in (
+    allowed_types = (
         "text/csv",
         "application/vnd.ms-excel",
         "application/octet-stream",
-    ):
+    )
+    if file.content_type not in allowed_types:
         raise HTTPException(
             status_code=400,
             detail=f"Invalid file type: {file.content_type}. Please upload a CSV.",
         )
 
-    # ── Validate size (read content-length header if available) ──────
-    # Note: for streaming uploads the size may not be known upfront,
-    # so we rely on the web-server / proxy for hard limits.
+    # ── Validate filename extension ──────────────────────────────────
+    filename = (file.filename or "").lower()
+    if not filename.endswith(".csv"):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid file extension. Please upload a .csv file.",
+        )
 
     result = await save_upload(file)
     return UploadResponse(**result)

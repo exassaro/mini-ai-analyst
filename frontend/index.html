@@ -13,6 +13,7 @@
   
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@2.0.1/dist/chartjs-chart-matrix.min.js"></script>
 </head>
 <body>
 
@@ -73,6 +74,13 @@
             <div class="spinner" id="uploadSpinner"></div>
             <p id="uploadMsg" style="font-size: 0.9rem;"></p>
           </div>
+        </div>
+        <!-- Schema preview after upload -->
+        <div class="card hidden" id="schemaPreviewCard" style="margin-top: 1rem;">
+          <h3>Schema Preview</h3>
+          <p id="schemaShape" style="margin-bottom: 0.75rem;"></p>
+          <div id="schemaTable" style="overflow-x: auto;"></div>
+          <div id="schemaFlags" style="margin-top: 1rem;"></div>
         </div>
       </section>
 
